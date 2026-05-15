@@ -86,7 +86,8 @@ class StockfishEngine {
     }
   }
 
-  analyze(fen: string, multiPv = 3): Promise<AnalysisResult> {
+  /** Shared UCI search helper. */
+  private runSearch(fen: string, multiPv: number, goCmd: string): Promise<AnalysisResult> {
     return new Promise((resolve) => {
       if (!this.ready || !this.worker) {
         resolve({ bestMove: '', lines: [] });
@@ -98,12 +99,26 @@ class StockfishEngine {
       this.worker.postMessage(`setoption name Skill Level value ${this.skillLevel}`);
       this.worker.postMessage(`setoption name MultiPV value ${multiPv}`);
       this.worker.postMessage(`position fen ${fen}`);
-      this.worker.postMessage('go depth 15');
+      this.worker.postMessage(goCmd);
     });
   }
 
+  /**
+   * Deep analysis for the Coach button — uses depth 15 + MultiPV 3.
+   * Called infrequently, so latency is acceptable.
+   */
+  analyze(fen: string, multiPv = 3): Promise<AnalysisResult> {
+    return this.runSearch(fen, multiPv, 'go depth 15');
+  }
+
+  /**
+   * Fast move selection for playing — uses movetime scaled to skill level.
+   * Skill 0 → ~200ms, Skill 10 → ~900ms, Skill 20 → ~1600ms.
+   * MultiPV=1 so Stockfish focuses on a single best line.
+   */
   getBestMove(fen: string): Promise<string> {
-    return this.analyze(fen, 1).then(r => r.bestMove);
+    const movetime = 200 + this.skillLevel * 70;
+    return this.runSearch(fen, 1, `go movetime ${movetime}`).then(r => r.bestMove);
   }
 
   destroy() {

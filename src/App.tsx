@@ -40,10 +40,16 @@ function App() {
     engine.setSkillLevel(skillLevel);
   }, [skillLevel]);
 
-  function syncState(g: Chess) {
+  // Sync React state after a move.
+  // sanMove is appended to moves — we don't call g.history() because
+  // new Chess(fen) resets history, so history() would only return the
+  // single move just played.
+  function syncState(g: Chess, sanMove?: string) {
     setGame(g);
     setFen(g.fen());
-    setMoves(g.history());
+    if (sanMove) {
+      setMoves(prev => [...prev, sanMove]);
+    }
     if (g.isGameOver()) {
       if (g.isCheckmate()) {
         const winner = g.turn() === 'w' ? 'Black' : 'White';
@@ -67,12 +73,12 @@ function App() {
           return;
         }
         const updated = new Chess(g.fen());
-        updated.move({
+        const result = updated.move({
           from: bestMove.slice(0, 2) as Square,
           to: bestMove.slice(2, 4) as Square,
           promotion: bestMove[4] ?? 'q',
         });
-        syncState(updated);
+        if (result) syncState(updated, result.san);
       } catch {
         // ignore
       } finally {
@@ -103,7 +109,7 @@ function App() {
       const updated = new Chess(game.fen());
       const result = updated.move({ from, to, promotion: promotion ?? 'q' });
       if (!result) return false;
-      syncState(updated);
+      syncState(updated, result.san);
       setExplanation(null);
       setCoachError(null);
       return true;
@@ -175,50 +181,54 @@ function App() {
   }
 
   return (
-    <div className="min-h-svh bg-slate-900 flex flex-col">
+    <div className="min-h-svh bg-stone-50 flex flex-col">
       {/* Header */}
-      <header className="bg-slate-800 border-b border-slate-700 px-4 py-3">
-        <h1 className="text-lg font-semibold text-white tracking-tight">
-          ♟️ Chess Coach
+      <header className="bg-white border-b border-stone-200 px-4 py-3">
+        <h1 className="text-lg font-semibold text-stone-800 tracking-tight">
+          Chess Coach
         </h1>
       </header>
 
       {/* Main layout: stacked on mobile, side-by-side on md+ */}
-      <main className="flex-1 flex flex-col md:flex-row gap-4 p-4 max-w-5xl mx-auto w-full">
-        {/* Board */}
-        <div className="flex-1 min-w-0">
-          <Board
-            fen={fen}
-            playerSide={playerSide}
-            gameOver={!!gameOver}
-            onMove={handleMove}
-          />
+      <main className="flex-1 flex flex-col md:flex-row gap-3 p-3 max-w-5xl mx-auto w-full">
+        {/* Board — capped to viewport height so it never causes scrolling */}
+        <div className="flex-1 min-w-0 flex flex-col items-center justify-start">
+          <div className="w-full" style={{ maxWidth: 'min(100%, calc(100svh - 10rem))' }}>
+            <Board
+              fen={fen}
+              playerSide={playerSide}
+              gameOver={!!gameOver}
+              onMove={handleMove}
+            />
+          </div>
           {engineThinking && (
-            <p className="text-center text-slate-400 text-xs mt-2 animate-pulse">
+            <p className="text-center text-stone-400 text-xs mt-2 animate-pulse">
               Stockfish is thinking…
             </p>
           )}
         </div>
 
         {/* Sidebar */}
-        <div className="md:w-64 lg:w-72 flex flex-col gap-4">
-          <Controls
-            playerSide={playerSide}
-            skillLevel={skillLevel}
-            gameOver={gameOver}
-            onNewGame={handleNewGame}
-            onSideChange={handleSideChange}
-            onSkillChange={setSkillLevel}
-          />
+        <div className="md:w-64 lg:w-72 flex flex-col gap-3">
+          <div className="bg-white rounded-lg p-3 border border-stone-200">
+            <Controls
+              playerSide={playerSide}
+              skillLevel={skillLevel}
+              gameOver={gameOver}
+              onNewGame={handleNewGame}
+              onSideChange={handleSideChange}
+              onSkillChange={setSkillLevel}
+            />
+          </div>
 
-          <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-            <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-2">
+          <div className="bg-white rounded-lg p-3 border border-stone-200">
+            <p className="text-stone-500 text-xs font-medium uppercase tracking-wide mb-2">
               Moves
             </p>
             <MoveList moves={moves} />
           </div>
 
-          <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+          <div className="bg-white rounded-lg p-3 border border-stone-200">
             <CoachPanel
               explanation={explanation}
               loading={coachLoading}

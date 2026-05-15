@@ -13,7 +13,7 @@ export default function MoveList({ moves }: MoveListProps) {
 
   if (moves.length === 0) {
     return (
-      <div className="text-slate-500 text-xs text-center py-3 italic">
+      <div className="text-stone-400 text-xs text-center py-3 italic">
         No moves yet
       </div>
     );
@@ -30,12 +30,12 @@ export default function MoveList({ moves }: MoveListProps) {
       <table className="w-full border-collapse">
         <tbody>
           {pairs.map(([white, black], i) => (
-            <tr key={i} className="hover:bg-slate-700/40">
-              <td className="text-slate-500 pr-2 pl-1 py-0.5 text-xs w-6 select-none">
+            <tr key={i} className="hover:bg-stone-50">
+              <td className="text-stone-400 pr-2 pl-1 py-0.5 text-xs w-6 select-none">
                 {i + 1}.
               </td>
-              <td className="pr-3 py-0.5 text-slate-200 w-1/2">{white}</td>
-              <td className="py-0.5 text-slate-200 w-1/2">{black ?? ''}</td>
+              <td className="pr-3 py-0.5 text-stone-700 w-1/2">{white}</td>
+              <td className="py-0.5 text-stone-700 w-1/2">{black ?? ''}</td>
             </tr>
           ))}
         </tbody>

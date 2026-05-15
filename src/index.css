@@ -6,8 +6,8 @@
 
 body {
   margin: 0;
-  background: #1a1a2e;
-  color: #e2e8f0;
+  background: #fafaf9; /* stone-50 */
+  color: #1c1917;      /* stone-900 */
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }

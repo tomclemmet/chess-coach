@@ -1,3 +1,5 @@
+import ReactMarkdown from 'react-markdown';
+import type { Components } from 'react-markdown';
 
 interface CoachPanelProps {
   explanation: string | null;
@@ -6,6 +8,19 @@ interface CoachPanelProps {
   disabled: boolean;
   onAskCoach: () => void;
 }
+
+// Minimal markdown component map — keeps the minimalist stone aesthetic
+// without needing @tailwindcss/typography
+const markdownComponents: Components = {
+  p: ({ children }) => <p className="mb-2 last:mb-0 text-stone-700 leading-relaxed">{children}</p>,
+  strong: ({ children }) => <strong className="font-semibold text-stone-900">{children}</strong>,
+  em: ({ children }) => <em className="italic text-stone-700">{children}</em>,
+  ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+  ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+  li: ({ children }) => <li className="text-stone-700">{children}</li>,
+  h3: ({ children }) => <h3 className="font-semibold text-stone-800 mb-1">{children}</h3>,
+  h4: ({ children }) => <h4 className="font-medium text-stone-800 mb-1">{children}</h4>,
+};
 
 export default function CoachPanel({
   explanation,
@@ -21,8 +36,8 @@ export default function CoachPanel({
         disabled={disabled || loading}
         className={`w-full rounded-lg px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
           disabled || loading
-            ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
-            : 'bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 text-white'
+            ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
+            : 'bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white'
         }`}
       >
         {loading ? (
@@ -34,22 +49,26 @@ export default function CoachPanel({
             Asking coach…
           </>
         ) : (
-          <>💡 Ask Coach</>
+          <>Ask Coach</>
         )}
       </button>
 
       {error && (
-        <div className="bg-red-900/30 border border-red-700/40 rounded-lg px-3 py-2 text-red-400 text-xs">
+        <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-red-700 text-xs">
           {error}
         </div>
       )}
 
       {explanation && !error && (
-        <div className="bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-3 text-slate-200 text-sm leading-relaxed">
-          <div className="text-emerald-400 text-xs font-medium mb-1.5 uppercase tracking-wide">
+        <div className="border border-stone-200 rounded-lg px-3 py-3 bg-amber-50/40">
+          <div className="text-amber-800 text-xs font-medium mb-2 uppercase tracking-wide">
             Coach says
           </div>
-          {explanation}
+          <div className="text-sm">
+            <ReactMarkdown components={markdownComponents}>
+              {explanation}
+            </ReactMarkdown>
+          </div>
         </div>
       )}
     </div>
