@@ -49,7 +49,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ explanation });
   } catch (err: unknown) {
     console.error('Gemini error:', err);
-    const msg = err instanceof Error ? err.message : 'Gemini request failed';
-    return res.status(502).json({ error: msg });
+
+    // Extract a clean message — Gemini SDK errors often nest the real message
+    let msg = 'Gemini request failed';
+    if (err instanceof Error) {
+      // SDK wraps the HTTP body; try to pull out just the human-readable part
+      const raw = err.message;
+      // "429 Resource Exhausted" lines start with the status text
+      if (raw.includes('RESOURCE_EXHAUSTED') || raw.includes('429')) {
+        msg = 'Gemini quota exceeded — please wait a minute and try again, or enable billing on your Google AI project.';
+      } else if (raw.includes('API_KEY_INVALID') || raw.includes('401')) {
+        msg = 'Invalid Gemini API key — check the GEMINI_API_KEY environment variable.';
+      } else {
+        // Try to grab just the first sentence of the message before any JSON
+        msg = raw.split('\n')[0].slice(0, 200);
+      }
+    }
+
+    const status = (err as { status?: number }).status ?? 502;
+    return res.status(status === 429 ? 429 : 502).json({ error: msg });
   }
 }
